@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRION CONTAINMENT PROTOCOL — BIOSEC TERMINAL</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#090c09;--bg2:#0e130e;--bg3:#131813;
+  --amber:#ffb700;--amber-dim:#7a5500;--amber-faint:rgba(255,183,0,0.07);
+  --green:#39ff14;--green-dim:#1a6600;--green-faint:rgba(57,255,20,0.06);
+  --red:#ff2828;--red-dim:#7a0000;--red-faint:rgba(255,40,40,0.08);
+  --cyan:#00f5e0;--cyan-dim:#005a52;
+  --purple:#bb88ff;
+  --white:#dff0df;--dim:#4a5c4a;--dim2:#2d3a2d;
+  --mono:'Share Tech Mono',monospace;--display:'Orbitron',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow-x:hidden;}
+body{background:var(--bg);color:var(--white);font-family:var(--mono);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:9999;}
+#hdr{background:var(--bg2);border-bottom:2px solid var(--amber-dim);padding:8px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:12px;flex-wrap:wrap;}
+#hdr-left{display:flex;align-items:center;gap:10px;}
+.bz{font-size:20px;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+#gtitle{font-family:var(--display);font-size:12px;font-weight:700;color:var(--amber);letter-spacing:2px;}
+#gsub{font-size:9px;color:var(--dim);letter-spacing:1px;}
+#hdr-center{text-align:center;}
+#tlabel{font-size:9px;color:var(--dim);letter-spacing:2px;}
+#timer{font-family:var(--display);font-size:26px;font-weight:700;color:var(--green);letter-spacing:3px;line-height:1;transition:color .3s;}
+#timer.warn{color:var(--amber);}
+#timer.crit{color:var(--red);animation:blink .5s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+#hdr-right{min-width:180px;text-align:right;}
+#clabel{font-size:9px;color:var(--dim);letter-spacing:2px;display:flex;justify-content:space-between;margin-bottom:3px;}
+#cbar-wrap{height:10px;background:#160000;border:1px solid var(--red-dim);border-radius:2px;overflow:hidden;}
+#cbar{height:100%;width:0%;background:linear-gradient(90deg,#6a0000,var(--red));transition:width .5s;box-shadow:0 0 6px var(--red);}
+#ctext{font-size:10px;color:var(--red);margin-top:2px;}
+#hints-row{display:flex;align-items:center;gap:6px;margin-top:4px;justify-content:flex-end;}
+#hlabel{font-size:9px;color:var(--dim);letter-spacing:1px;}
+.hdot{width:10px;height:10px;border-radius:50%;background:var(--cyan);box-shadow:0 0 5px var(--cyan);transition:all .3s;}
+.hdot.used{background:var(--dim);box-shadow:none;}
+#main{max-width:920px;margin:0 auto;padding:20px 20px 60px;}
+.screen{display:none;}.screen.active{display:block;}
+/* INTRO */
+#intro-screen{text-align:center;padding:50px 20px;}
+.ilogo{font-family:var(--display);font-size:40px;font-weight:900;color:var(--amber);letter-spacing:4px;line-height:1.15;text-shadow:0 0 40px rgba(255,183,0,.35);margin-bottom:6px;}
+.ilogo span{color:var(--red);}
+.isub{font-size:11px;letter-spacing:5px;color:var(--dim);margin-bottom:36px;}
+.tbox{background:var(--bg2);border:1px solid var(--amber-dim);border-radius:4px;padding:18px 22px;text-align:left;margin:0 auto 24px;max-width:680px;}
+.tbox p{font-size:13px;line-height:1.85;margin-bottom:8px;color:var(--white);}
+.tbox p:last-child{margin-bottom:0;}
+.ta{color:var(--amber);}.tr{color:var(--red);}
+.rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:680px;margin:0 auto 28px;text-align:left;}
+.rule-card{background:var(--bg2);border:1px solid var(--dim2);border-radius:4px;padding:14px;}
+.rule-card h4{font-family:var(--display);font-size:10px;letter-spacing:2px;color:var(--amber);margin-bottom:8px;}
+.rule-card p{font-size:12px;line-height:1.6;color:rgba(223,240,223,.75);}
+.btn{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:3px;padding:13px 30px;border:2px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;text-transform:uppercase;transition:all .2s;border-radius:3px;}
+.btn:hover{background:var(--amber);color:var(--bg);box-shadow:0 0 20px rgba(255,183,0,.4);}
+.btn-g{border-color:var(--green);color:var(--green);}
+.btn-g:hover{background:var(--green);color:var(--bg);box-shadow:0 0 20px rgba(57,255,20,.4);}
+.btn-r{border-color:var(--red);color:var(--red);}
+.btn-r:hover{background:var(--red);color:var(--bg);box-shadow:0 0 20px rgba(255,40,40,.4);}
+/* FILE SCREEN */
+#file-screen{padding:10px 0;}
+.file-card{position:relative;overflow:hidden;background:var(--bg2);border:1px solid var(--amber-dim);border-radius:6px;max-width:780px;margin:0 auto;}
+.file-bg-wrap{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.file-bg-wrap svg{width:100%;height:100%;opacity:.08;}
+.file-header{position:relative;z-index:1;border-bottom:2px solid var(--amber-dim);padding:18px 26px 14px;}
+.file-eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.file-stamp{font-family:var(--display);font-size:9px;letter-spacing:3px;color:var(--red);border:1px solid var(--red-dim);padding:3px 8px;border-radius:2px;}
+.file-tag{font-size:9px;letter-spacing:2px;color:var(--dim);}
+.file-title{font-family:var(--display);font-size:18px;font-weight:700;color:var(--amber);letter-spacing:2px;margin-bottom:3px;}
+.file-subtitle{font-size:10px;color:var(--dim);letter-spacing:1px;}
+.file-body{position:relative;z-index:1;padding:20px 26px;}
+.doc-section{margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--dim2);}
+.doc-section:last-of-type{border-bottom:none;margin-bottom:0;}
+.doc-tag{font-family:var(--display);font-size:9px;letter-spacing:3px;color:var(--cyan);margin-bottom:10px;padding-bottom:5px;border-bottom:1px dashed rgba(0,245,224,.2);}
+.doc-section p{font-size:12.5px;line-height:1.85;color:rgba(223,240,223,.85);margin-bottom:10px;}
+.doc-section p:last-child{margin-bottom:0;}
+.doc-hi{color:var(--amber);}
+.doc-red{color:var(--red);font-weight:bold;}
+.doc-note{font-size:11.5px!important;color:rgba(0,245,224,.9)!important;background:rgba(0,245,224,.05);border-left:2px solid var(--cyan-dim);padding:8px 12px!important;border-radius:0 3px 3px 0;line-height:1.7!important;display:block;margin-top:4px;}
+.file-footer{position:relative;z-index:1;padding:14px 26px 18px;border-top:1px solid var(--dim2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.file-warning{font-size:10px;color:var(--dim);letter-spacing:1px;}
+/* ROOM */
+#room-screen{padding-top:4px;}
+#rhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--amber-dim);}
+#rnum{font-family:var(--display);font-size:10px;color:var(--dim);letter-spacing:3px;margin-bottom:4px;}
+#rtitle{font-family:var(--display);font-size:17px;font-weight:700;color:var(--amber);letter-spacing:2px;}
+#progress{display:flex;gap:5px;padding-top:4px;}
+.pdot{width:9px;height:9px;border-radius:50%;background:var(--bg3);border:1px solid var(--dim);transition:all .3s;}
+.pdot.done{background:var(--green);border-color:var(--green);box-shadow:0 0 5px var(--green);}
+.pdot.cur{background:var(--amber);border-color:var(--amber);box-shadow:0 0 5px var(--amber);animation:pulse 1.2s infinite;}
+#lobj{background:rgba(0,245,224,.04);border-left:3px solid var(--cyan);padding:9px 13px;margin-bottom:14px;border-radius:0 3px 3px 0;}
+#lobj-label{font-size:9px;letter-spacing:3px;color:var(--cyan);margin-bottom:3px;}
+#lobj-text{font-size:12px;color:rgba(223,240,223,.8);line-height:1.5;}
+#puzzle{background:var(--bg2);border:1px solid var(--amber-dim);border-radius:4px;padding:18px;margin-bottom:14px;}
+#pq{font-size:13.5px;color:var(--amber);line-height:1.7;margin-bottom:18px;}
+.q-scaffold{font-size:12px;color:rgba(223,240,223,.65);line-height:1.7;margin-top:-10px;margin-bottom:16px;border-left:2px solid var(--amber-dim);padding-left:10px;}
+.case-block{background:var(--bg3);border-left:3px solid var(--purple);padding:12px 14px;margin:10px 0;border-radius:0 3px 3px 0;font-size:12.5px;color:var(--white);line-height:1.75;}
+.case-block b{color:var(--purple);}
+/* MCQ */
+.mcq{display:flex;flex-direction:column;gap:9px;}
+.mo{background:var(--bg3);border:1px solid var(--dim);border-radius:3px;padding:11px 15px;cursor:pointer;font-size:13px;color:var(--white);transition:all .2s;display:flex;align-items:flex-start;gap:11px;line-height:1.5;}
+.mo:hover:not(.dis){border-color:var(--amber);background:var(--amber-faint);color:var(--amber);}
+.mo.ok{border-color:var(--green);background:var(--green-faint);color:var(--green);}
+.mo.bad{border-color:var(--red);background:var(--red-faint);color:var(--red);}
+.mo.dis{cursor:default;}
+.ml{font-family:var(--display);font-size:11px;color:var(--amber-dim);min-width:18px;margin-top:1px;flex-shrink:0;}
+/* Wrong guidance panel */
+.guidance-panel{margin-top:12px;padding:11px 14px;background:rgba(255,183,0,0.06);border:1px solid var(--amber-dim);border-radius:3px;font-size:12px;color:rgba(223,240,223,.8);line-height:1.7;display:none;}
+.guidance-panel.show{display:block;}
+.guidance-panel .gp-label{font-family:var(--display);font-size:9px;letter-spacing:2px;color:var(--amber);margin-bottom:5px;}
+/* SORT */
+.slist{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.si{background:var(--bg3);border:1px solid var(--dim);border-radius:3px;padding:10px 14px;font-size:12px;color:var(--white);cursor:grab;display:flex;align-items:center;gap:10px;transition:border-color .15s,background .15s;user-select:none;line-height:1.5;}
+.si:active{cursor:grabbing;}
+.si.dragging{opacity:.45;border-color:var(--amber);}
+.si.over{border-color:var(--cyan);background:rgba(0,245,224,.07);}
+.si.sok{border-color:var(--green);color:var(--green);}
+.si.sbad{border-color:var(--red);color:var(--red);}
+.sh{color:var(--dim);font-size:14px;flex-shrink:0;}
+.sn{font-family:var(--display);font-size:10px;color:var(--amber-dim);min-width:18px;flex-shrink:0;}
+/* CATEGORIZE */
+.cat-pool{display:flex;flex-wrap:wrap;gap:7px;min-height:36px;margin-bottom:14px;padding:10px;background:var(--bg3);border:1px solid var(--dim2);border-radius:3px;}
+.chip{background:var(--bg2);border:1px solid var(--amber-dim);border-radius:20px;padding:5px 13px;font-size:11px;cursor:pointer;transition:all .2s;color:var(--amber);}
+.chip:hover:not(.plcd){box-shadow:0 0 7px rgba(255,183,0,.2);}
+.chip.csel{background:var(--amber);color:var(--bg);box-shadow:0 0 12px rgba(255,183,0,.4);}
+.chip.plcd{opacity:.25;cursor:default;pointer-events:none;}
+.cat-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.cc{background:var(--bg3);border:1px solid var(--dim2);border-radius:4px;padding:11px;min-height:110px;}
+.cc-title{font-family:var(--display);font-size:10px;font-weight:700;letter-spacing:2px;text-align:center;margin-bottom:9px;padding-bottom:7px;border-bottom:1px solid var(--dim2);}
+.cc.cc-b .cc-title{color:var(--cyan);}
+.cc.cc-v .cc-title{color:var(--purple);}
+.cc.cc-p .cc-title{color:var(--red);}
+.cc-items{display:flex;flex-direction:column;gap:5px;min-height:50px;}
+.cslot{border:1px dashed var(--dim2);border-radius:3px;padding:5px 9px;font-size:11px;color:var(--white);cursor:pointer;transition:all .15s;text-align:center;line-height:1.4;}
+.cslot:hover{border-color:var(--amber);background:var(--amber-faint);}
+.cslot.cok{border-style:solid;border-color:var(--green);color:var(--green);background:var(--green-faint);}
+.cslot.cbad{border-style:solid;border-color:var(--red);color:var(--red);background:var(--red-faint);}
+/* BRAIN */
+#brain-wrap{display:flex;flex-direction:column;gap:14px;}
+#brain-symptom-box{background:var(--bg3);border:2px solid var(--amber);border-radius:4px;padding:14px 18px;text-align:center;}
+#bs-label{font-size:9px;letter-spacing:3px;color:var(--dim);margin-bottom:6px;}
+#bs-symptom{font-size:15px;color:var(--amber);line-height:1.4;}
+#bs-progress{display:flex;justify-content:center;gap:8px;margin-top:10px;}
+.bsp-dot{width:10px;height:10px;border-radius:50%;background:var(--bg2);border:1px solid var(--dim);transition:all .3s;}
+.bsp-dot.done{background:var(--green);border-color:var(--green);box-shadow:0 0 5px var(--green);}
+.bsp-dot.cur{background:var(--amber);border-color:var(--amber);box-shadow:0 0 5px var(--amber);animation:pulse 1s infinite;}
+#brain-svg-wrap{display:flex;justify-content:center;}
+#brain-instr{font-size:11px;color:var(--dim);letter-spacing:1px;text-align:center;margin-top:-6px;}
+#brain-guidance{margin-top:8px;padding:9px 13px;background:rgba(255,183,0,0.06);border:1px solid var(--amber-dim);border-radius:3px;font-size:12px;color:rgba(223,240,223,.8);line-height:1.65;display:none;}
+#brain-guidance.show{display:block;}
+.brain-region{transition:filter .18s;cursor:pointer;}
+.brain-region:hover{filter:brightness(2.2) drop-shadow(0 0 6px rgba(255,183,0,.5));}
+.brain-region.br-correct{filter:brightness(2.5) drop-shadow(0 0 10px rgba(57,255,20,.7));}
+.brain-region.br-wrong{filter:brightness(2.8) drop-shadow(0 0 10px rgba(255,40,40,.8));}
+.brain-region.br-done{filter:brightness(1.5);pointer-events:none;opacity:.75;}
+.brain-label{font-family:'Share Tech Mono',monospace;font-size:9.5px;fill:rgba(223,240,223,.5);pointer-events:none;text-anchor:middle;}
+.brain-label.lbl-done{fill:rgba(57,255,20,.85);}
+/* CHECK / HINT / CODE */
+.check-row{margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+#pfeedback{font-size:13px;padding:9px 13px;border-radius:3px;display:none;line-height:1.5;flex:1;}
+#pfeedback.pok{background:var(--green-faint);border:1px solid var(--green-dim);color:var(--green);display:block;}
+#hint-sec{margin-top:11px;border-top:1px solid var(--dim2);padding-top:10px;}
+#htoggle{font-size:11px;background:none;border:none;color:var(--cyan);cursor:pointer;font-family:var(--mono);letter-spacing:1px;padding:0;}
+#htoggle:hover{text-decoration:underline;}
+#htext{display:none;margin-top:7px;padding:9px 12px;background:rgba(0,245,224,.05);border:1px solid rgba(0,245,224,.2);border-radius:3px;font-size:12px;color:var(--cyan);line-height:1.65;}
+#htext em{font-style:italic;color:rgba(0,245,224,.75);}
+#code-sec{background:var(--bg3);border:1px solid var(--amber-dim);border-radius:4px;padding:14px 18px;display:none;}
+#code-sec.show{display:block;}
+#code-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+#code-icon{font-size:18px;animation:pulse 1s infinite;}
+#code-msg{font-size:13px;color:var(--green);}
+#code-msg span{font-family:var(--display);font-weight:700;letter-spacing:2px;color:var(--green);}
+#code-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+#clabel2{font-size:10px;letter-spacing:3px;color:var(--dim);flex-shrink:0;}
+#code-chars{display:flex;gap:6px;}
+.cc-inp{width:42px;height:50px;background:var(--bg2);border:2px solid var(--amber-dim);border-radius:3px;font-family:var(--display);font-size:20px;font-weight:700;color:var(--amber);text-align:center;text-transform:uppercase;outline:none;transition:border-color .2s;}
+.cc-inp:focus{border-color:var(--amber);box-shadow:0 0 10px rgba(255,183,0,.25);}
+.cc-inp.err{border-color:var(--red);animation:shake .3s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);};}
+#code-err{font-size:11px;color:var(--red);margin-top:6px;display:none;}
+#toast{position:fixed;top:74px;left:50%;transform:translateX(-50%);background:#1a0800;border:1px solid var(--red-dim);color:var(--red);font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:9px 18px;border-radius:3px;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s;text-align:center;white-space:nowrap;max-width:90vw;}
+#toast.show{opacity:1;}
+#victory-screen,#gameover-screen{text-align:center;padding:50px 20px;}
+.vtitle{font-family:var(--display);font-size:36px;font-weight:900;letter-spacing:4px;text-shadow:0 0 40px rgba(57,255,20,.5);margin-bottom:8px;color:var(--green);}
+.gotitle{font-family:var(--display);font-size:36px;font-weight:900;letter-spacing:4px;text-shadow:0 0 40px rgba(255,40,40,.5);margin-bottom:8px;color:var(--red);}
+.endsub{font-size:11px;letter-spacing:4px;color:var(--dim);margin-bottom:36px;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:480px;margin:0 auto 36px;}
+.stat{background:var(--bg2);border:1px solid var(--amber-dim);border-radius:4px;padding:14px;}
+.stat-l{font-size:9px;letter-spacing:2px;color:var(--dim);margin-bottom:5px;}
+.stat-v{font-family:var(--display);font-size:22px;font-weight:700;color:var(--amber);}
+.summary-box{background:var(--bg2);border:1px solid var(--green-dim);border-radius:4px;padding:18px 22px;max-width:700px;margin:0 auto 28px;text-align:left;}
+.summary-box h3{font-family:var(--display);font-size:11px;letter-spacing:3px;color:var(--green);margin-bottom:12px;}
+.summary-box ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.summary-box li{font-size:12px;line-height:1.6;color:rgba(223,240,223,.8);padding-left:16px;position:relative;}
+.summary-box li::before{content:'▸';position:absolute;left:0;color:var(--green);}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--amber-dim);border-radius:3px;}
+#flash{position:fixed;inset:0;pointer-events:none;z-index:500;opacity:0;background:rgba(255,0,0,.12);transition:opacity .1s;}
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<div id="toast"></div>
+<div id="hdr">
+  <div id="hdr-left"><div class="bz">☣</div><div><div id="gtitle">PRION CONTAINMENT PROTOCOL</div><div id="gsub">BIOSEC TERMINAL v2.3 — MCMASTER NEUROSCIENCE</div></div></div>
+  <div id="hdr-center"><div id="tlabel">TIME REMAINING</div><div id="timer">20:00</div></div>
+  <div id="hdr-right">
+    <div id="clabel"><span>CONTAMINATION</span><span id="cpct">0%</span></div>
+    <div id="cbar-wrap"><div id="cbar"></div></div>
+    <div id="ctext">FACILITY STATUS: SECURE</div>
+    <div id="hints-row"><span id="hlabel">DIAGNOSTIC TOOLS:</span><div class="hdot" id="h1"></div><div class="hdot" id="h2"></div><div class="hdot" id="h3"></div></div>
+  </div>
+</div>
+<div id="main">
+
+<!-- INTRO -->
+<div id="intro-screen" class="screen active">
+  <div class="ilogo">PRION<br><span>CONTAINMENT</span><br>PROTOCOL</div>
+  <div class="isub">BIOSEC EMERGENCY RESPONSE SIMULATION</div>
+  <div class="tbox">
+    <p>It's 11:42 PM. A routine post-op chekc just flagged something that can't wait, a surgical instrument from last night's craniotomy trace back to a patient now under investigation for suspected CJD (prion diease). The OR suite is quarantined. The sterile processing unit is locked down.</p>
+    <p>You're the infection specialist on call. Before emergency decontamination can begin, you need to understand prion disease, what it is, how it spreads through the nervous system, how to diagnose it, and how to stop it from spreading through this facility.</p>
+    <p>Seven containment zones stand between you and full clearance. In each zone you'll find evidence left behind, lab reports, clinical notes, protocol binders. <span class="ta">Read them carefully before closing the file.</span> Once a file is sealed, it's gone. What follows are questions that test your understanding on what you read.</p>
+    <p style="font-size:12px;color:rgba(223,240,223,.5);">If you're stuck, your Diagnostic Tools (hints) will remind you of a specific passage from the file. Use them wisely, you only have three.</p>
+  </div>
+  <div class="rules-grid">
+    <div class="rule-card"><h4>⏱ TIMER</h4><p>20 minutes on the clock. Every wrong answer costs <span style="color:var(--red)">−2 minutes</span>.</p></div>
+    <div class="rule-card"><h4>☣ CONTAMINATION</h4><p>Wrong answers add <span style="color:var(--red)">+10% contamination</span>. Hit 100% and the facility breaches —> game over.</p></div>
+    <div class="rule-card"><h4>🔬 DIAGNOSTIC TOOLS</h4><p>3 hints total, one per zone. They'll quote something from what you read.</p></div>
+    <div class="rule-card"><h4>🔑 ACCESS CODES</h4><p>Solve each zone to reveal a 4-character code. Enter it to advance.</p></div>
+  </div>
+  <button class="btn" onclick="startGame()">▶ RESPOND TO INCIDENT</button>
+</div>
+
+<!-- FILE SCREEN -->
+<div id="file-screen" class="screen">
+  <div class="file-card">
+    <div class="file-bg-wrap"><div id="file-bg-svg"></div></div>
+    <div class="file-header">
+      <div class="file-eyebrow"><div class="file-stamp" id="file-stamp-text">EVIDENCE FILE</div><div class="file-tag" id="file-tag-text"></div></div>
+      <div class="file-title" id="file-title"></div>
+      <div class="file-subtitle" id="file-subtitle"></div>
+    </div>
+    <div class="file-body" id="file-content"></div>
+    <div class="file-footer">
+      <div class="file-warning">⚠ THIS FILE CLOSES PERMANENTLY WHEN YOU PROCEED</div>
+      <button class="btn btn-g" onclick="closeFile()">CLOSE FILE — ENTER ZONE <span id="file-next-zone"></span> →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ROOM -->
+<div id="room-screen" class="screen">
+  <div id="rhdr"><div><div id="rnum"></div><div id="rtitle"></div></div><div id="progress"></div></div>
+  <div id="lobj"><div id="lobj-label">LEARNING OBJECTIVE</div><div id="lobj-text"></div></div>
+  <div id="puzzle">
+    <div id="pq"></div>
+    <div id="puzzle-content"></div>
+    <div class="check-row" id="check-row" style="display:none;">
+      <button class="btn" id="check-btn">VERIFY SEQUENCE</button>
+      <div id="pfeedback"></div>
+    </div>
+    <div id="hint-sec">
+      <button id="htoggle" onclick="useHint()">[ USE DIAGNOSTIC TOOL ]</button>
+      <div id="htext"></div>
+    </div>
+  </div>
+  <div id="code-sec">
+    <div id="code-top"><div id="code-icon">🔐</div><div id="code-msg">ZONE CLEARED — ACCESS CODE: <span id="revealed-code"></span></div></div>
+    <div id="code-row">
+      <div id="clabel2">ENTER CODE:</div>
+      <div id="code-chars">
+        <input class="cc-inp" id="ci0" maxlength="1" oninput="codeInput(0)" onkeydown="codeKey(event,0)">
+        <input class="cc-inp" id="ci1" maxlength="1" oninput="codeInput(1)" onkeydown="codeKey(event,1)">
+        <input class="cc-inp" id="ci2" maxlength="1" oninput="codeInput(2)" onkeydown="codeKey(event,2)">
+        <input class="cc-inp" id="ci3" maxlength="1" oninput="codeInput(3)" onkeydown="codeKey(event,3)">
+      </div>
+      <button class="btn btn-g" onclick="submitCode()">UNLOCK →</button>
+    </div>
+    <div id="code-err">✗ INVALID CODE — re-enter the code shown above.</div>
+  </div>
+</div>
+
+<!-- VICTORY -->
+<div id="victory-screen" class="screen">
+  <div class="vtitle">CONTAINMENT ACHIEVED</div>
+  <div class="endsub">FACILITY SECURED — ALL 7 ZONES CLEARED</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-l">TIME REMAINING</div><div class="stat-v" id="v-time">—</div></div>
+    <div class="stat"><div class="stat-l">CONTAMINATION</div><div class="stat-v" id="v-contam">—</div></div>
+    <div class="stat"><div class="stat-l">WRONG ANSWERS</div><div class="stat-v" id="v-wrong">—</div></div>
+  </div>
+  <div class="summary-box">
+    <h3>KEY CONCEPTS MASTERED</h3>
+    <ul>
+      <li>DWI-MRI detects water diffusion changes from dying cells, cortical ribboning and basal ganglia hyperintensity are near-pathognomonic for CJD</li>
+      <li>Prions propagate by contact: PrP<sup>Sc</sup> (β-sheet) physically templates PrP<sup>C</sup> (α-helix) into its misfolded shape, no DNA, no RNA, no genetic code</li>
+      <li>Disease progression: silent PrP<sup>Sc</sup> seeding → synaptic failure → spongiform vacuolation → neuroinflammation → neuronal death → clinical collapse</li>
+      <li>Fatal Familial Insomnia: D178N PRNP + codon 129 Met/Met → selective thalamic loss → untreatable insomnia and autonomic failure (not primarily dementia)</li>
+      <li>Prions have no nucleic acid, UV, nucleases, and standard 121°C autoclaving all fail because they target things prions don't have</li>
+      <li>Brain region mapping: ataxia→cerebellum, dementia→cortex, insomnia→thalamus, personality change→frontal lobe, visual loss→occipital cortex</li>
+      <li>CDC/WHO decontamination: 1N NaOH 60 min (disrupts β-sheet bonds) + 134°C autoclave 18 min. Both steps. 121°C alone is explicitly insufficient.</li>
+    </ul>
+  </div>
+  <button class="btn btn-g" onclick="restartGame()">▶ RESTART PROTOCOL</button>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameover-screen" class="screen">
+  <div class="gotitle">FACILITY BREACHED</div>
+  <div class="endsub" id="go-reason">CONTAINMENT FAILURE</div>
+  <div class="tbox" style="max-width:560px;">
+    <p><span class="tr">MISSION FAILED.</span> Prion contamination has spread beyond recoverable limits. Emergency shutdown protocols have engaged.</p>
+    <p>Read the evidence files carefully on your next run. Pay attention to the reasoning behind each fact — the questions are designed to test understanding, not just memory.</p>
+  </div>
+  <button class="btn btn-r" onclick="restartGame()">▶ RESTART FROM ZONE 1</button>
+</div>
+</div>
+
+<script>
+const G={room:0,timerSec:1200,timerInterval:null,contamination:0,wrongAnswers:0,hintsUsed:0,hintUsedThisRoom:false,puzzleSolved:false,running:false,dragSrc:null,currentFile:0,brainState:null};
+
+/* ═══ FILES ═══ */
+const FILES=[
+{stamp:"LAB EVIDENCE",tag:"COVERS ZONES 1 & 2",title:"NEUROPATHOLOGY LAB REPORT",subtitle:"SPECIMEN #CJD-2024-07  ·  RESTRICTED  ·  ISSUED 03:14",nextRoom:0,nextZone:1,bg:'lab',content:`
+<div class="doc-section">
+<div class="doc-tag">PART 1 — WHICH SCAN DO WE USE AND WHY?</div>
+<p>When we suspected prion disease in this patient, we ordered four different imaging tests to compare them. It's worth understanding what each one actually measures, because the right answer isn't obvious at first.</p>
+<p><span class="doc-hi">EEG</span> records electrical signals from the brain's surface. In prion disease, it can show a pattern called periodic sharp-wave complexes but this only appears in about 65% of patients, and only in later stages of the disease. It tells you there's something wrong electrically, but not where the damage is physically located.</p>
+<p><span class="doc-hi">fMRI and PET</span> measure metabolic changes, blood flow and glucose use, respectively. They'll show that affected areas are less active, but reduced metabolism is not a specific enough finding. Stroke, tumours, and many dementias all look similar. These tools are useful in research, not for arriving at a diagnosis.</p>
+<p><span class="doc-hi">DWI-MRI</span> measures how freely water molecules move through tissue. In healthy brain, water diffuses relatively freely between cells. When cells are dying or swelling (as happens when prion-damaged neurons begin to fail) water movement becomes restricted. This shows up on DWI as a bright signal. In prion disease, this produces a distinct pattern: a ribbon of restricted diffusion along the cortex (called <span class="doc-hi">cortical ribboning</span>) and bright patches in the basal ganglia. This combination is specific enough that when a neurologist sees it, prion disease immediately comes to mind.</p>
+<p class="doc-note">⚑ Key point: DWI-MRI shows WHERE cells are actively dying, with a characteristic pattern that isn't seen in other dementias. That's what makes it the imaging test of choice here.</p>
+</div>
+<div class="doc-section">
+<div class="doc-tag">PART 2 — WHAT IS A PRION, EXACTLY?</div>
+<p>PrP<sup>C</sup> —> the normal cellular prion protein, sits on the surface of neurons, folded in a shape rich in α-helices. It's soluble, it's functional, and it's found throughout the brain.</p>
+<p>PrP<sup>Sc</sup> —> the disease-causing form has the exact same amino acid sequence. Same gene, same building blocks. But it folds differently: mostly β-sheets instead of α-helices. This changes everything. It's insoluble, it clumps together, and the brain has no way to break it down.</p>
+<p>Here's what makes prions unlike any other infectious agent: <span class="doc-hi">PrP<sup>Sc</sup> propagates by direct physical contact</span>. When a PrP<sup>Sc</sup> molecule bumps into a normal PrP<sup>C</sup> molecule, it acts as a structural template, forcing PrP<sup>C</sup> to adopt the misfolded shape. The newly converted PrP<sup>Sc</sup> then does the same to the next PrP<sup>C</sup>, and so on. It's autocatalytic — each misfolded protein creates more misfolded proteins. Think of it like a chain reaction triggered by molecular contact alone. <span class="doc-hi">There is no DNA, no RNA, no genetic code involved.</span> The misfolded protein IS the infectious agent.</p>
+<p class="doc-note">⚑ Cascade order to remember: (1) PrP<sup>C</sup> is expressed normally on the neuron surface → (2) PrP<sup>Sc</sup> contacts PrP<sup>C</sup> → (3) PrP<sup>C</sup> misfolds into PrP<sup>Sc</sup> → (4) new PrP<sup>Sc</sup> recruits more PrP<sup>C</sup> (autocatalytic) → (5) aggregates form into insoluble amyloid fibrils → (6) fibrils disrupt synapses and kill neurons.</p>
+</div>`},
+
+{stamp:"PATIENT FILE",tag:"COVERS ZONES 3 & 4",title:"PATIENT CASE FILE — CONFIDENTIAL",subtitle:"REF: PR-2024-07  ·  ATTENDING: DR. A. VASQUEZ  ·  STATUS: UNDER INVESTIGATION",nextRoom:2,nextZone:3,bg:'hospital',content:`
+<div class="doc-section">
+<div class="doc-tag">PART 1 — DISEASE PROGRESSION</div>
+<p>What's particularly cruel about prion disease is that by the time anyone presents clinically, months of silent damage have already occurred. The protein accumulates long before it causes anything detectable.</p>
+<p>The progression follows a logical sequence. First, <span class="doc-hi">PrP<sup>Sc</sup> accumulates silently</span> in and around synaptic terminals, no symptoms, nothing on imaging, just protein building up. Then <span class="doc-hi">synaptic dysfunction</span> sets in: neurotransmitter release becomes unreliable, dendritic spines begin to retract. This is the point where patients start noticing something is wrong. After that comes <span class="doc-hi">spongiform vacuolation</span> — the tissue-level consequence of sustained damage. Tiny holes form throughout the grey matter, giving it a sponge-like appearance under the microscope. This is the pathological hallmark of the disease, though it can only be confirmed at autopsy.</p>
+<p>From there, <span class="doc-hi">astrocytes and microglia activate</span> in response the brain's inflammatory attempt to contain the damage, which ultimately fails. <span class="doc-hi">Widespread neuronal death</span> follows, the brain atrophies, and that shrinkage becomes visible on MRI. End-stage is complete neurological collapse, coma, then death. No treatment affects the course at any stage.</p>
+<p class="doc-note">⚑ Order: silent PrP<sup>Sc</sup> seeding → synaptic dysfunction → spongiform vacuolation → neuroinflammation → neuronal death and atrophy → end-stage. Vacuolation comes after synaptic failure it's a structural consequence of ongoing damage.</p>
+</div>
+<div class="doc-section">
+<div class="doc-tag">PART 2 — THE FOUR HUMAN PRION DISEASES</div>
+<p>There are four main human prion diseases. Each targets a different brain region, which is why they present so differently the symptoms directly reflect the function of whatever region is being destroyed.</p>
+<p><span class="doc-hi">Sporadic CJD (sCJD)</span> accounts for about 85% of cases. No inheritance the misfolding seems to happen spontaneously. Primary targets are the cortex and basal ganglia, so rapidly progressive dementia is the defining feature. Patients can deteriorate dramatically over just weeks. DWI-MRI shows cortical ribboning and basal ganglia hyperintensity.</p>
+<p><span class="doc-hi">Fatal Familial Insomnia (FFI)</span> is inherited specifically caused by the D178N mutation in PRNP, but only in combination with a Met/Met genotype at codon 129. The disease preferentially destroys the <span class="doc-hi">thalamus</span>, which regulates sleep-wake cycles and autonomic control. The result is progressive, untreatable insomnia alongside autonomic dysfunction — sweating, tachycardia, blood pressure instability. Dementia is not the main feature. Autosomal dominant inheritance, so it runs in families.</p>
+<p><span class="doc-hi">GSS (Gerstmann-Sträussler-Scheinker)</span> is autosomal dominant but targets the cerebellum — slowly progressive ataxia over years rather than rapid dementia. <span class="doc-hi">Kuru</span> was transmitted through ritual cannibalism in Papua New Guinea. Essentially extinct now. Also cerebellar in presentation.</p>
+<p class="doc-note">⚑ FFI: D178N + Met/Met at codon 129. Thalamus is the target. Insomnia and autonomic failure are the hallmarks, not dementia. Autosomal dominant, it runs in families across generations.</p>
+</div>`},
+
+{stamp:"PROTOCOL BINDER",tag:"COVERS ZONES 5, 6 & 7",title:"BIOSAFETY PROTOCOL BINDER",subtitle:"PRION DECONTAMINATION PROCEDURES  ·  CDC/WHO 2024  ·  INFECTION CONTROL",nextRoom:4,nextZone:5,bg:'library',content:`
+<div class="doc-section">
+<div class="doc-tag">SECTION 1 — PRIONS VS. BACTERIA VS. VIRUSES</div>
+<p>Standard sterilization fails on prions because prions lack everything those methods target. To understand why, it helps to compare them directly.</p>
+<p><span class="doc-hi">Bacteria</span> are full independent cells, DNA, RNA, ribosomes, peptidoglycan cell walls, independent metabolism. Antibiotics exploit the structural differences between bacterial and human cells: cell wall synthesis, bacterial ribosomes, DNA replication machinery.</p>
+<p><span class="doc-hi">Viruses</span> carry a nucleic acid genome, DNA or RNA, packaged inside a protein capsid. They replicate by hijacking host ribosomes to read their genome. UV radiation, nucleases, and most antiviral strategies work by targeting that genome.</p>
+<p><span class="doc-hi">Prions have none of that.</span> No nucleic acid. No capsid. No ribosomes. No cell wall. Just a misfolded protein with a β-sheet structure that is chemically and thermally very stable. UV and nucleases fail because there's no nucleic acid to damage. Autoclaving at 121°C fails because PrP<sup>Sc</sup>'s β-sheet configuration survives temperatures that denature normal proteins. Standard methods assume a target that doesn't exist here.</p>
+</div>
+<div class="doc-section">
+<div class="doc-tag">SECTION 2 — SYMPTOMS AND BRAIN REGIONS</div>
+<p>Different prion diseases destroy different regions, and the clinical picture follows directly from whichever region is affected.</p>
+<p><span class="doc-hi">Cerebellum</span> — coordinates smooth voluntary movement and balance. Prion damage here produces progressive ataxia: worsening coordination, unsteady gait, eventually loss of independent mobility.</p>
+<p><span class="doc-hi">Thalamus</span> — the relay station for sensory and motor signals, and a key regulator of sleep-wake cycles and autonomic function. Prion damage here produces untreatable insomnia and autonomic instability: sweating, tachycardia, blood pressure swings.</p>
+<p><span class="doc-hi">Frontal lobe</span> — executive function, impulse control, personality regulation. Prion damage here produces personality change and disinhibition, the patient acts out of character in ways their family often notice before the patient does.</p>
+<p><span class="doc-hi">Cerebral cortex</span> (parietal and temporal regions), higher cognition, language, memory. Prion damage here produces rapidly progressive dementia, the dominant feature of sporadic CJD.</p>
+<p><span class="doc-hi">Occipital cortex</span> — primary visual processing. Prion damage here produces visual hallucinations first, then progressive cortical blindness.</p>
+</div>
+<div class="doc-section">
+<div class="doc-tag">SECTION 3 — DECONTAMINATION</div>
+<p><span class="doc-red">121°C autoclaving does not inactivate prions</span>, regardless of how long you run it. PrP<sup>Sc</sup>'s β-sheet structure is thermostable beyond normal autoclave temperatures. <span class="doc-red">Glutaraldehyde fails</span> it crosslinks surface proteins but can't disrupt the β-sheet core. <span class="doc-red">UV and gamma irradiation fail</span> both work by fragmenting nucleic acids, which prions don't have.</p>
+<p>The CDC/WHO validated protocol requires two steps: first, <span class="doc-hi">immerse in 1N NaOH for 60 minutes</span> the alkaline environment disrupts the hydrogen bonds holding the β-sheet structure together. Then, <span class="doc-hi">autoclave at 134°C for 18 minutes</span>. The chemical pre-treatment combined with elevated temperature is sufficient to inactivate residual infectivity. Instruments that can't survive this process must be quarantined and destroyed.</p>
+<p class="doc-note">⚑ Two numbers: 1N NaOH for 60 min, then 134°C for 18 min. Both steps. In that order. 121°C will not work.</p>
+</div>`}
+];
+
+/* ═══ ROOMS ═══ */
+const ROOMS=[
+{id:1,title:"NEURAL IMAGING ANALYSIS",
+objective:"Understand why DWI-MRI is the most diagnostically useful imaging tool for prion disease.",
+hint:"You recall reading: <em>\"DWI-MRI shows WHERE cells are actively dying — cortical ribboning and basal ganglia signal that's specific to prion disease. EEG only appears in ~65% of patients and only late.\"</em>",
+type:"mcq",
+question:"A 62-year-old presents with rapidly progressive dementia and involuntary muscle jerks over 6 weeks. Lumbar puncture shows elevated 14-3-3 protein. Which imaging technique is MOST useful for confirming prion disease — and consider what each technique actually measures, not just whether it shows something abnormal.",
+options:[
+  {label:"A",text:"EEG — detects periodic sharp-wave complexes from disrupted cortical activity",correct:false,feedback:"EEG shows electrical disruption, not where structural damage is. PSWCs also only appear in ~65% of cases and only late — think about which technique gives a location-specific pattern."},
+  {label:"B",text:"fMRI — detects blood flow changes in regions with reduced neural activity",correct:false,feedback:"Reduced blood flow is non-specific — stroke, tumours, and many dementias look the same. Think about which technique produces a pattern distinctive enough to point specifically at prion disease."},
+  {label:"C",text:"DWI-MRI — detects restricted water diffusion where neurons are actively dying, producing cortical ribboning and basal ganglia hyperintensity",correct:true,feedback:""},
+  {label:"D",text:"PET — reveals areas of reduced glucose metabolism in affected brain regions",correct:false,feedback:"Hypometabolism is non-specific across neurodegenerative diseases. Think about which technique shows a structurally distinctive spatial pattern."}
+],
+code:"DWI4"},
+
+{id:2,title:"PRION MISFOLDING CASCADE",
+objective:"Sequence the molecular events of prion propagation, understanding why each step must follow the one before it.",
+hint:"You recall reading: <em>\"Cascade order: PrP<sup>C</sup> expressed normally → PrP<sup>Sc</sup> contacts PrP<sup>C</sup> → PrP<sup>C</sup> misfolds → new PrP<sup>Sc</sup> recruits more PrP<sup>C</sup> (autocatalytic) → amyloid fibrils form → fibrils disrupt synapses and kill neurons.\"</em>",
+type:"sort",
+question:"🧬 SEQUENCE THE PRION MISFOLDING CASCADE — Drag to reorder. Each step creates the conditions for the next. (1 = first event, 6 = last)",
+items:[
+  {id:"s1",text:"Normal PrPC (α-helix-rich, soluble) is expressed and anchors itself on the neuronal cell surface: the starting state in a healthy brain",order:1},
+  {id:"s2",text:"Infectious PrPSc (β-sheet-rich, insoluble) makes direct physical contact with a normal PrPC molecule",order:2},
+  {id:"s3",text:"PrPC is forced to misfold: its α-helices refold into β-sheets, converting it into a new PrPSc molecule",order:3},
+  {id:"s4",text:"Each new PrPSc molecule contacts more PrPC, the conversion becomes autocatalytic (self sustainig) and accelerates",order:4},
+  {id:"s5",text:"PrPSc molecules aggregate into insoluble, protease-resistant amyloid fibrils that accumulate in and around neurons",order:5},
+  {id:"s6",text:"Amyloid fibril accumulation disrupts synaptic transmission, triggers vacuolation, and causes neuronal death",order:6}
+],
+sortGuidance:[
+  "Step 1: what's the starting state in a healthy neuron before any infection arrives?",
+  "Contact has to happen before conversion. Check that PrPSc arrives before PrPC changes.",
+  "Conversion happens before autocatalytic amplification you need at least one new PrPSc first.",
+  "Autocatalytic amplification requires that conversion has already occurred.",
+  "Aggregation into fibrils requires many PrPSc molecules think about what precedes this.",
+  "Cell death is the endpoint of the whole cascade, not an intermediate step."
+],
+code:"FOLD"},
+
+{id:3,title:"DISEASE PROGRESSION SEQUENCE",
+objective:"Order the stages of prion disease progression, understanding the cellular logic that drives each transition.",
+hint:"You recall reading: <em>\"PrP<sup>Sc</sup> accumulates silently for months before any symptoms appear. Synaptic dysfunction comes next. Spongiform vacuolation is a structural consequence of damage — it appears after synaptic failure, not before.\"</em>",
+type:"sort",
+question:"📊 ORDER THE STAGES OF PRION DISEASE — Drag to reorder. Protein accumulates before function fails; tissue damage follows function failure; the immune response reacts to damage already underway. (1 = earliest, 6 = latest)",
+items:[
+  {id:"p1",text:"PrPSc accumulates silently in synaptic terminals and around neurons, no symptoms yet, but the damage is beginning",order:1},
+  {id:"p2",text:"Synaptic failure: neurotransmitter release becomes unreliable, dendritic spines retract, the first functional deficits appear",order:2},
+  {id:"p3",text:"Spongiform vacuolation: fluid-filled holes form inside grey matter, giving it a sponge-like appearance under the microscope",order:3},
+  {id:"p4",text:"Neuroinflammation: astrocytes and microglia activate in response to ongoing neuronal damage",order:4},
+  {id:"p5",text:"Widespread neuronal death causes gross brain atrophy, the brain physically shrinks, visible on MRI",order:5},
+  {id:"p6",text:"Clinical end-stage: complete neurological collapse, coma and death follow",order:6}
+],
+sortGuidance:[
+  "The silent phase comes first, protein accumulates before anything fails functionally.",
+  "Synaptic dysfunction is the first functional failure. It precedes any visible structural damage.",
+  "Vacuolation is structural damage, it follows synaptic failure, not the other way around.",
+  "Neuroinflammation is a reaction to ongoing damage. Think about what it's responding to.",
+  "Visible atrophy on MRI means large-scale neuronal death has already occurred, this is late.",
+  "Clinical collapse is always the endpoint, not a midpoint."
+],
+code:"PROG"},
+
+{id:4,title:"PRION VARIANT DIAGNOSIS",
+objective:"Identify the correct prion disease variant from a clinical case using genetic, imaging, and symptom data.",
+hint:"You recall reading: <em>\"FFI: D178N + Met/Met at codon 129. Thalamus is the target, insomnia and autonomic failure are the hallmarks, not dementia. Autosomal dominant, so it runs in families.\"</em>",
+type:"mcq",
+question:"CASE FILE #PR-2024-07:<div class='case-block'><b>Patient:</b> 54-year-old woman. Progressive insomnia for 4 months, now barely sleeping 60–90 minutes per night. Profuse night sweats, tachycardia, blood pressure spikes. Mild coordination difficulties. Mild executive dysfunction; memory largely preserved.<br><br><b>Family history:</b> Father died age 58 witha  similar undiagnosed neurological illness. Paternal grandfather, similar presentation, died age 61.<br><br><b>Imaging:</b> DWI-MRI shows bilateral thalamic hyperintensity. Cortex relatively normal.<br><br><b>Genetics:</b> PRNP D178N mutation. Codon 129: Met/Met.</div>Work through the clues systematically, which brain region is damaged, what does that region do, do the symptoms match, and does the genetics fit a specific variant?",
+options:[
+  {label:"A",text:"Sporadic CJD (sCJD) — most common prion disease, rapidly progressive dementia",correct:false,feedback:"sCJD targets the cortex and basal ganglia, not the thalamus. It's also sporadic it doesn't run in families. Think about what three generations of the same illness means."},
+  {label:"B",text:"Gerstmann-Sträussler-Scheinker syndrome (GSS) — hereditary, mainly cerebellar ataxia",correct:false,feedback:"GSS is inherited, but it targets the cerebellum (not insommnia). Think about where the MRI signal actually is."},
+  {label:"C",text:"Fatal Familial Insomnia (FFI) — D178N + Met/Met at codon 129, selective thalamic destruction causing untreatable insomnia and autonomic failure",correct:true,feedback:""},
+  {label:"D",text:"Kuru — transmitted through ritual cannibalism, cerebellar presentation",correct:false,feedback:"Kuru requires a specific transmission route and is essentially extinct. Three generations of family history points to inherited disease, not acquired."}
+],
+code:"FFI1"},
+
+{id:5,title:"PATHOGEN CLASSIFICATION",
+objective:"Distinguish prions from bacteria and viruses by identifying which structural properties belong to each pathogen type.",
+hint:"You recall reading: <em>\"Prions have no nucleic acid, no capsid, no ribosomes, no cell wall. Just a misfolded protein. That's why UV and nucleases don't work — they target nucleic acid, which prions don't have.\"</em>",
+type:"cat",
+question:"🧫 ASSIGN each property to the correct pathogen. Click a chip to select it (turns amber), then click the correct column to place it. Click a placed chip to return it to the pool. For each property, ask which pathogen type could actually have it.",
+chips:[
+  {id:"c1",text:"Carries its own DNA or RNA genome",correct:"bacteria"},
+  {id:"c2",text:"Infectious agent is a protein only, no nucleic acid",correct:"prion"},
+  {id:"c3",text:"Has a cell membrane",correct:"bacteria"},
+  {id:"c4",text:"Resists destruction by UV radiation and nucleases",correct:"prion"},
+  {id:"c5",text:"Uses host cell ribosomes to replicate",correct:"virus"},
+  {id:"c6",text:"Causes spongiform holes to form in brain tissue",correct:"prion"},
+  {id:"c7",text:"Susceptible to antibiotic treatment",correct:"bacteria"},
+  {id:"c8",text:"Genome packaged inside a protein capsid coat",correct:"virus"},
+  {id:"c9",text:"Survives 134°C autoclaving that kills all other pathogens",correct:"prion"}
+],
+catGuidance:"The red chips are in the wrong column. For each: does this property require having nucleic acid? If so, prions are ruled out. Does it describe something only an independent living cell would have? Does it describe dependence on a host cell's machinery?",
+code:"PROT"},
+
+{id:6,title:"NEUROANATOMICAL MAPPING",
+objective:"Connect prion disease symptoms to the brain regions being destroyed.",
+hint:"You recall reading: <em>\"Cerebellum → coordination and balance. Thalamus → sleep-wake and autonomic regulation. Frontal lobe → personality and impulse control. Cerebral cortex → cognition and memory. Occipital cortex → visual processing.\"</em>",
+type:"brain",
+question:"🧠 For each symptom shown, click the brain region on the lateral diagram primarily being destroyed by PrP<sup>Sc</sup> accumulation. One symptom at a time.",
+pairs:[
+  {symptom:"Progressive ataxia & gait instability",region:"Cerebellum"},
+  {symptom:"Rapidly progressive dementia & memory loss",region:"Cerebral Cortex"},
+  {symptom:"Intractable insomnia & autonomic dysfunction",region:"Thalamus"},
+  {symptom:"Personality change & disinhibition",region:"Frontal Lobe"},
+  {symptom:"Visual hallucinations & cortical blindness",region:"Occipital Cortex"}
+],
+brainFeedback:{
+  'Frontal Lobe':"Frontal lobe damage → personality change and disinhibition. Think about which region's function matches the current symptom.",
+  'Cerebral Cortex':"Cortical damage → dementia and memory loss. Does the current symptom fit that?",
+  'Occipital Cortex':"Occipital damage → visual hallucinations and blindness. Does the current symptom fit that?",
+  'Cerebellum':"Cerebellar damage → ataxia and gait instability. Does the current symptom fit that?",
+  'Thalamus':"Thalamic damage → sleep disruption and autonomic failure. Does the current symptom fit that?"
+},
+code:"THAL"},
+
+{id:7,title:"STERILIZATION PROTOCOL",
+objective:"Select the correct decontamination protocol for prion-contaminated instruments, understanding why standard methods fail.",
+hint:"You recall reading: <em>\"UV and gamma irradiation target nucleic acids — prions don't have any. 121°C won't denature the β-sheet structure regardless of duration. Protocol: 1N NaOH for 60 min, then 134°C for 18 min.\"</em>",
+type:"mcq",
+question:"FINAL CLEARANCE — The craniotomy instruments require decontamination before the OR can reopen. Confirmed probable sCJD. For each option, consider what the method actually targets and whether that target exists in PrPSc.",
+options:[
+  {label:"A",text:"Steam autoclave at 121°C for 30 minutes — extended duration at standard hospital temperature",correct:false,feedback:"Duration isn't the issue — temperature is. PrPSc's β-sheet structure survives 121°C regardless of how long you run it. Think about what temperature is actually required."},
+  {label:"B",text:"Immerse in 2% glutaraldehyde for 24 hours — high-level disinfectant for heat-sensitive instruments",correct:false,feedback:"Glutaraldehyde crosslinks surface proteins but can't disrupt the β-sheet core. Think about what structure actually needs to be broken down."},
+  {label:"C",text:"Immerse in 1N NaOH for 60 minutes, then autoclave at 134°C for 18 minutes — CDC/WHO validated two-step protocol",correct:true,feedback:""},
+  {label:"D",text:"Gamma irradiation at 25 kGy — standard sterilization for single-use medical devices",correct:false,feedback:"Gamma irradiation fragments nucleic acids. Prions have no nucleic acid — there's nothing for it to target."}
+],
+code:"NAOH"}
+];
+
+/* ═══ SVG BACKGROUNDS ═══ */
+function getBgSvg(t){
+  if(t==='lab')return`<svg viewBox="0 0 780 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice"><rect x="0" y="320" width="780" height="160" fill="#1a2a1a"/><rect x="0" y="312" width="780" height="12" fill="#2a4a2a"/><rect x="80" y="240" width="165" height="74" rx="2" fill="none" stroke="#3a6a3a" stroke-width="2"/><rect x="80" y="312" width="165" height="8" fill="#3a6a3a"/><rect x="100" y="252" width="13" height="50" rx="6" fill="#1a3a1a" stroke="#3a7a3a" stroke-width="1.5"/><rect x="120" y="248" width="13" height="54" rx="6" fill="#1a3a1a" stroke="#3a7a3a" stroke-width="1.5"/><rect x="140" y="255" width="13" height="47" rx="6" fill="#1a3a1a" stroke="#3a7a3a" stroke-width="1.5"/><rect x="160" y="250" width="13" height="52" rx="6" fill="#1a3a1a" stroke="#3a7a3a" stroke-width="1.5"/><rect x="180" y="258" width="13" height="44" rx="6" fill="#1a3a1a" stroke="#3a7a3a" stroke-width="1.5"/><rect x="101" y="285" width="11" height="16" fill="#2a7a2a" opacity=".7"/><rect x="121" y="278" width="11" height="23" fill="#7a5a2a" opacity=".7"/><rect x="141" y="288" width="11" height="13" fill="#2a7a2a" opacity=".6"/><rect x="161" y="282" width="11" height="19" fill="#5a2a7a" opacity=".6"/><rect x="181" y="290" width="11" height="11" fill="#7a5a2a" opacity=".7"/><line x1="560" y1="170" x2="560" y2="312" stroke="#3a5a3a" stroke-width="3"/><ellipse cx="560" cy="170" rx="28" ry="11" fill="#3a5a3a"/><rect x="543" y="275" width="34" height="7" fill="#3a5a3a"/><rect x="538" y="282" width="44" height="12" rx="3" fill="#2a4a2a"/><line x1="560" y1="181" x2="548" y2="218" stroke="#4a6a4a" stroke-width="3"/><ellipse cx="546" cy="224" rx="13" ry="7" fill="#3a5a3a"/><line x1="388" y1="0" x2="388" y2="55" stroke="#3a5a3a" stroke-width="3"/><path d="M335,55 L441,55 L424,92 L352,92 Z" fill="#1a3a1a" stroke="#3a5a3a" stroke-width="1.5"/><rect x="648" y="108" width="128" height="208" rx="3" fill="#0e1e0e" stroke="#2a4a2a" stroke-width="1.5"/><line x1="712" y1="108" x2="712" y2="316" stroke="#2a4a2a" stroke-width="1"/><line x1="648" y1="212" x2="776" y2="212" stroke="#2a4a2a" stroke-width="1"/></svg>`;
+  if(t==='hospital')return`<svg viewBox="0 0 780 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice"><rect x="0" y="0" width="780" height="480" fill="#0c1420"/><rect x="95" y="282" width="336" height="17" rx="3" fill="#243444" stroke="#345464" stroke-width="1.5"/><rect x="95" y="298" width="336" height="98" rx="3" fill="#1a2a3a" stroke="#2a4050" stroke-width="1.5"/><rect x="86" y="278" width="17" height="120" rx="3" fill="#243444" stroke="#345464" stroke-width="1.5"/><rect x="428" y="278" width="17" height="120" rx="3" fill="#243444" stroke="#345464" stroke-width="1.5"/><rect x="86" y="236" width="17" height="46" rx="2" fill="#243444" stroke="#345464" stroke-width="1.5"/><line x1="74" y1="138" x2="74" y2="400" stroke="#345464" stroke-width="3"/><rect x="58" y="144" width="32" height="50" rx="9" fill="#183040" stroke="#284858" stroke-width="1.5"/><rect x="506" y="168" width="155" height="96" rx="5" fill="#0d1820" stroke="#284454" stroke-width="1.5"/><rect x="513" y="175" width="141" height="64" rx="3" fill="#050e14"/><polyline points="520,209 539,209 546,191 551,228 557,191 562,228 567,209 584,209 590,198 596,220 602,209 638,209" fill="none" stroke="#00bb77" stroke-width="1.5" opacity=".8"/><rect x="572" y="34" width="116" height="96" rx="3" fill="#050e18" stroke="#243444" stroke-width="2"/><line x1="630" y1="34" x2="630" y2="130" stroke="#243444" stroke-width="1.5"/><line x1="572" y1="82" x2="688" y2="82" stroke="#243444" stroke-width="1.5"/></svg>`;
+  if(t==='library')return`<svg viewBox="0 0 780 480" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice"><rect x="0" y="0" width="780" height="480" fill="#100c06"/><rect x="0" y="0" width="155" height="420" fill="#0f0a05" stroke="#30200a" stroke-width="1.5"/><line x1="0" y1="84" x2="155" y2="84" stroke="#30200a" stroke-width="2"/><line x1="0" y1="168" x2="155" y2="168" stroke="#30200a" stroke-width="2"/><line x1="0" y1="252" x2="155" y2="252" stroke="#30200a" stroke-width="2"/><line x1="0" y1="336" x2="155" y2="336" stroke="#30200a" stroke-width="2"/><rect x="6" y="12" width="17" height="68" fill="#281808" stroke="#402810" stroke-width="1"/><rect x="25" y="8" width="13" height="72" fill="#182808" stroke="#284018" stroke-width="1"/><rect x="40" y="16" width="15" height="64" fill="#280818" stroke="#401028" stroke-width="1"/><rect x="57" y="10" width="18" height="70" fill="#081828" stroke="#102840" stroke-width="1"/><rect x="77" y="14" width="14" height="66" fill="#281808" stroke="#402810" stroke-width="1"/><rect x="93" y="10" width="17" height="70" fill="#182818" stroke="#284028" stroke-width="1"/><rect x="6" y="96" width="20" height="68" fill="#181828" stroke="#282840" stroke-width="1"/><rect x="28" y="92" width="15" height="72" fill="#281808" stroke="#402810" stroke-width="1"/><rect x="45" y="100" width="19" height="64" fill="#182808" stroke="#284018" stroke-width="1"/><rect x="66" y="94" width="13" height="70" fill="#280818" stroke="#401028" stroke-width="1"/><rect x="619" y="0" width="161" height="420" fill="#0f0a05" stroke="#30200a" stroke-width="1.5"/><line x1="619" y1="84" x2="780" y2="84" stroke="#30200a" stroke-width="2"/><line x1="619" y1="168" x2="780" y2="168" stroke="#30200a" stroke-width="2"/><line x1="619" y1="252" x2="780" y2="252" stroke="#30200a" stroke-width="2"/><rect x="626" y="10" width="19" height="70" fill="#280818" stroke="#401028" stroke-width="1"/><rect x="647" y="6" width="15" height="74" fill="#082818" stroke="#104028" stroke-width="1"/><rect x="664" y="14" width="20" height="66" fill="#281808" stroke="#402810" stroke-width="1"/><rect x="686" y="8" width="13" height="72" fill="#181828" stroke="#282840" stroke-width="1"/><rect x="244" y="342" width="274" height="17" rx="2" fill="#281e0c" stroke="#40300a" stroke-width="1.5"/><rect x="252" y="358" width="258" height="58" rx="2" fill="#181208" stroke="#301e08" stroke-width="1"/><rect x="462" y="340" width="23" height="9" fill="#382608" stroke="#503810" stroke-width="1.5"/><ellipse cx="476" cy="336" rx="66" ry="18" fill="#3a2e06" opacity=".2"/></svg>`;
+  return'';
+}
+
+/* ═══ BRAIN GEOMETRY ═══ */
+const BRAIN_DEFS={
+  'Frontal Lobe':{type:'path',d:'M68,122 C54,86 68,46 108,26 C148,8 210,6 256,16 L258,232 C222,240 184,245 156,241 C122,236 98,218 82,196 C64,174 62,150 68,122 Z',fill:'#0d1e14',lx:152,ly:88},
+  'Cerebral Cortex':{type:'path',d:'M256,16 C294,8 348,6 382,18 L392,30 C410,50 416,84 414,118 L414,208 C390,220 358,230 328,234 L258,232 Z',fill:'#0d1a20',lx:325,ly:70},
+  'Occipital Cortex':{type:'path',d:'M382,18 C418,12 460,26 488,52 C512,76 516,114 504,148 C492,178 468,198 446,210 L414,208 C416,84 410,50 392,30 Z',fill:'#1a0d1a',lx:456,ly:84},
+  'Cerebellum':{type:'path',d:'M414,208 L446,210 C470,220 494,240 502,268 C510,296 496,318 476,326 C454,334 426,328 406,312 C384,294 372,270 370,248 C362,222 372,208 390,206 Z',fill:'#1a1a0d',lx:434,ly:272},
+  'Thalamus':{type:'ellipse',cx:304,cy:168,rx:48,ry:32,fill:'#200d0d',lx:304,ly:172}
+};
+const DIVIDERS=['M256,16 L258,232','M382,18 L414,208','M414,208 L446,210','M68,150 C100,145 140,138 165,148 C190,158 220,162 258,155'];
+
+/* ═══ STARTUP ═══ */
+function startGame(){G.room=0;G.timerSec=1200;G.contamination=0;G.wrongAnswers=0;G.hintsUsed=0;G.running=true;G.currentFile=0;updateTimer();updateContam();updateHintDots();clearInterval(G.timerInterval);G.timerInterval=setInterval(tickTimer,1000);showFileScreen(0);}
+function restartGame(){startGame();}
+function showFileScreen(idx){const f=FILES[idx];G.currentFile=idx;document.getElementById('file-stamp-text').textContent=f.stamp;document.getElementById('file-tag-text').textContent=f.tag;document.getElementById('file-title').textContent=f.title;document.getElementById('file-subtitle').textContent=f.subtitle;document.getElementById('file-next-zone').textContent=f.nextZone;document.getElementById('file-content').innerHTML=f.content;document.getElementById('file-bg-svg').innerHTML=getBgSvg(f.bg);showScreen('file-screen');window.scrollTo(0,0);}
+function closeFile(){const f=FILES[G.currentFile];showScreen('room-screen');loadRoom(f.nextRoom);window.scrollTo(0,0);}
+
+/* ═══ TIMER ═══ */
+function tickTimer(){if(!G.running)return;G.timerSec--;if(G.timerSec<=0){G.timerSec=0;updateTimer();gameOver("TIME EXPIRED — FACILITY LOCKDOWN");return;}updateTimer();}
+function updateTimer(){const m=Math.floor(G.timerSec/60),s=G.timerSec%60;const el=document.getElementById('timer');el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');el.className=G.timerSec<120?'crit':G.timerSec<300?'warn':'';}
+
+/* ═══ CONTAMINATION ═══ */
+function addContam(p){G.contamination=Math.min(100,G.contamination+p);updateContam();const f=document.getElementById('flash');f.style.opacity='.6';setTimeout(()=>f.style.opacity='0',500);if(G.contamination>=100)setTimeout(()=>gameOver("CONTAMINATION CRITICAL — FACILITY BREACH"),600);}
+function updateContam(){const c=G.contamination;document.getElementById('cbar').style.width=c+'%';document.getElementById('cpct').textContent=c+'%';const t=document.getElementById('ctext');if(c>=80)t.textContent='⚠ STATUS: CRITICAL BREACH IMMINENT';else if(c>=50)t.textContent='⚠ STATUS: ELEVATED CONTAMINATION';else if(c>=20)t.textContent='⚠ STATUS: CONTAMINATION DETECTED';else t.textContent='FACILITY STATUS: SECURE';}
+
+/* ═══ HINTS ═══ */
+function updateHintDots(){for(let i=0;i<3;i++)document.getElementById('h'+(i+1)).className='hdot'+(i<G.hintsUsed?' used':'');}
+function useHint(){const ht=document.getElementById('htext');if(G.hintUsedThisRoom){ht.style.display=ht.style.display==='none'?'block':'none';return;}if(G.hintsUsed>=3){showToast("NO DIAGNOSTIC TOOLS REMAINING");return;}G.hintsUsed++;G.hintUsedThisRoom=true;updateHintDots();ht.innerHTML=ROOMS[G.room].hint;ht.style.display='block';document.getElementById('htoggle').textContent='[ HIDE DIAGNOSTIC TOOL ]';}
+
+/* ═══ LOAD ROOM ═══ */
+function loadRoom(idx){
+  const room=ROOMS[idx];G.puzzleSolved=false;G.hintUsedThisRoom=false;
+  document.getElementById('rnum').textContent=`ZONE ${room.id} OF ${ROOMS.length}`;
+  document.getElementById('rtitle').textContent=room.title;
+  const prog=document.getElementById('progress');prog.innerHTML='';
+  for(let i=0;i<ROOMS.length;i++){const d=document.createElement('div');d.className='pdot'+(i<idx?' done':i===idx?' cur':'');prog.appendChild(d);}
+  document.getElementById('lobj-text').textContent=room.objective;
+  // Build question with optional scaffold
+  const pq=document.getElementById('pq');
+  pq.innerHTML='';
+  if(room.scaffold){const sc=document.createElement('p');sc.className='q-scaffold';sc.textContent=room.scaffold;pq.appendChild(sc);}
+  const qtext=document.createElement('div');qtext.innerHTML=room.question;pq.appendChild(qtext);
+  document.getElementById('htext').style.display='none';
+  document.getElementById('htoggle').textContent=G.hintsUsed<3?'[ USE DIAGNOSTIC TOOL ]':'[ NO TOOLS REMAINING ]';
+  document.getElementById('check-row').style.display='none';
+  const fb=document.getElementById('pfeedback');fb.className='';fb.style.display='none';fb.textContent='';
+  document.getElementById('code-sec').className='';
+  document.getElementById('code-err').style.display='none';
+  ['ci0','ci1','ci2','ci3'].forEach(id=>{const el=document.getElementById(id);el.value='';el.className='cc-inp';});
+  const pc=document.getElementById('puzzle-content');pc.innerHTML='';
+  if(room.type==='mcq')buildMCQ(room,pc);
+  else if(room.type==='sort')buildSort(room,pc);
+  else if(room.type==='cat')buildCat(room,pc);
+  else if(room.type==='brain')buildBrain(room,pc);
+}
+
+/* ═══ MCQ ═══ */
+function buildMCQ(room,c){
+  const div=document.createElement('div');div.className='mcq';
+  room.options.forEach((opt,i)=>{
+    const b=document.createElement('div');b.className='mo';
+    b.innerHTML=`<span class="ml">${opt.label}</span><span>${opt.text}</span>`;
+    b.onclick=()=>handleMCQ(room,i,b,div);
+    div.appendChild(b);
+  });
+  // Guidance panel
+  const gp=document.createElement('div');gp.className='guidance-panel';gp.id='mcq-guidance';
+  gp.innerHTML='<div class="gp-label">GUIDANCE</div><span id="mcq-guidance-text"></span>';
+  div.appendChild(gp);
+  c.appendChild(div);
+}
+function handleMCQ(room,idx,el,container){
+  if(G.puzzleSolved)return;
+  container.querySelectorAll('.mo').forEach(o=>o.classList.add('dis'));
+  if(room.options[idx].correct){
+    el.classList.add('ok');onPuzzleSolved(room);
+  } else {
+    el.classList.add('bad');
+    wrongAnswer();
+    // Show correct option
+    container.querySelectorAll('.mo').forEach((o,i)=>{if(room.options[i].correct)o.classList.add('ok');});
+    // Show per-option guidance
+    const gp=document.getElementById('mcq-guidance');
+    const gt=document.getElementById('mcq-guidance-text');
+    if(gp&&gt&&room.options[idx].feedback){gt.textContent=room.options[idx].feedback;gp.classList.add('show');}
+  }
+}
+
+/* ═══ SORT ═══ */
+function buildSort(room,c){
+  const sh=[...room.items].sort(()=>Math.random()-.5);
+  const ul=document.createElement('ul');ul.className='slist';ul.id='sort-ul';
+  sh.forEach((item,i)=>{
+    const li=document.createElement('li');li.className='si';li.draggable=true;li.dataset.id=item.id;
+    li.innerHTML=`<span class="sh">⠿</span><span class="sn">${i+1}</span><span>${item.text}</span>`;
+    li.addEventListener('dragstart',function(e){G.dragSrc=this;this.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    li.addEventListener('dragover',function(e){e.preventDefault();document.querySelectorAll('.si').forEach(el=>el.classList.remove('over'));this.classList.add('over');});
+    li.addEventListener('drop',function(e){e.stopPropagation();if(G.dragSrc!==this){const u=this.parentNode;const it=Array.from(u.children);const si=it.indexOf(G.dragSrc),ti=it.indexOf(this);if(si<ti)u.insertBefore(G.dragSrc,this.nextSibling);else u.insertBefore(G.dragSrc,this);Array.from(u.children).forEach((el,ix)=>el.querySelector('.sn').textContent=ix+1);}});
+    li.addEventListener('dragend',()=>{document.querySelectorAll('.si').forEach(el=>el.classList.remove('dragging','over'));});
+    ul.appendChild(li);
+  });
+  c.appendChild(ul);
+  // Guidance panel for sort
+  const gp=document.createElement('div');gp.className='guidance-panel';gp.id='sort-guidance';
+  gp.innerHTML='<div class="gp-label">GUIDANCE — REARRANGE AND TRY AGAIN</div><span id="sort-guidance-text"></span>';
+  c.appendChild(gp);
+  document.getElementById('check-row').style.display='flex';
+  document.getElementById('check-btn').textContent='VERIFY SEQUENCE';
+  document.getElementById('check-btn').onclick=()=>checkSort(room);
+}
+function checkSort(room){
+  if(G.puzzleSolved)return;
+  const items=Array.from(document.getElementById('sort-ul').children);
+  const om={};room.items.forEach(it=>om[it.id]=it.order);
+  let ok=true;let firstWrongIdx=-1;
+  items.forEach((el,i)=>{const c=om[el.dataset.id]===i+1;el.classList.toggle('sok',c);el.classList.toggle('sbad',!c);if(!c&&firstWrongIdx===-1)firstWrongIdx=i;if(!c)ok=false;});
+  if(ok){onPuzzleSolved(room);const fb=document.getElementById('pfeedback');fb.className='pok';fb.textContent='✓ CORRECT ORDER — ACCESS GRANTED';}
+  else{
+    wrongAnswer();
+    const gp=document.getElementById('sort-guidance');const gt=document.getElementById('sort-guidance-text');
+    if(gp&&gt){
+      const guidance=room.sortGuidance&&room.sortGuidance[firstWrongIdx]?room.sortGuidance[firstWrongIdx]:`Step ${firstWrongIdx+1} is in the wrong position. Think about what logically must happen just before this event.`;
+      gt.textContent=guidance;gp.classList.add('show');
+    }
+  }
+}
+
+/* ═══ CATEGORIZE ═══ */
+let CS={sel:null,placed:{}};
+function buildCat(room,c){
+  CS={sel:null,placed:{}};
+  const pool=document.createElement('div');pool.className='cat-pool';pool.id='cat-pool';
+  [...room.chips].sort(()=>Math.random()-.5).forEach(chip=>{const el=document.createElement('div');el.className='chip';el.id='chip-'+chip.id;el.textContent=chip.text;el.dataset.chipId=chip.id;el.onclick=()=>cSelChip(chip.id,el);pool.appendChild(el);});
+  const cols=document.createElement('div');cols.className='cat-cols';
+  [['bacteria','BACTERIUM','cc-b'],['virus','VIRUS','cc-v'],['prion','PRION','cc-p']].forEach(([key,label,cls])=>{
+    const col=document.createElement('div');col.className=`cc ${cls}`;col.dataset.col=key;
+    const title=document.createElement('div');title.className='cc-title';title.textContent=label;col.appendChild(title);
+    const items=document.createElement('div');items.className='cc-items';items.id='col-'+key;col.appendChild(items);
+    col.onclick=(e)=>cPlaceChip(key,room,e);cols.appendChild(col);
+  });
+  const gp=document.createElement('div');gp.className='guidance-panel';gp.id='cat-guidance';
+  gp.innerHTML='<div class="gp-label">GUIDANCE — MOVE THE HIGHLIGHTED CHIPS AND VERIFY AGAIN</div><span id="cat-guidance-text"></span>';
+  document.getElementById('check-row').style.display='flex';
+  document.getElementById('check-btn').textContent='VERIFY ASSIGNMENTS';
+  document.getElementById('check-btn').onclick=()=>checkCat(room);
+  c.appendChild(pool);c.appendChild(cols);c.appendChild(gp);
+}
+function cSelChip(id,el){if(el.classList.contains('plcd'))return;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('csel'));if(CS.sel===id){CS.sel=null;return;}CS.sel=id;el.classList.add('csel');}
+function cPlaceChip(colKey,room,e){if(!CS.sel)return;if(e.target.classList.contains('cslot'))return;const chipId=CS.sel;const chipEl=document.getElementById('chip-'+chipId);const chip=room.chips.find(c=>c.id===chipId);const slot=document.createElement('div');slot.className='cslot';slot.dataset.chipId=chipId;slot.dataset.col=colKey;slot.textContent=chip.text;slot.onclick=(ev)=>{ev.stopPropagation();slot.remove();delete CS.placed[chipId];chipEl.classList.remove('plcd','csel');};document.getElementById('col-'+colKey).appendChild(slot);chipEl.classList.remove('csel');chipEl.classList.add('plcd');CS.placed[chipId]=colKey;CS.sel=null;}
+function checkCat(room){
+  if(G.puzzleSolved)return;
+  if(room.chips.length!==Object.keys(CS.placed).length){showToast("PLACE ALL PROPERTIES BEFORE VERIFYING");return;}
+  let ok=true;let wrongCount=0;
+  room.chips.forEach(chip=>{const correct=CS.placed[chip.id]===chip.correct;document.querySelectorAll(`.cslot[data-chip-id="${chip.id}"]`).forEach(sl=>{sl.classList.remove('cok','cbad');sl.classList.add(correct?'cok':'cbad');});if(!correct){ok=false;wrongCount++;}});
+  if(ok){onPuzzleSolved(room);const fb=document.getElementById('pfeedback');fb.className='pok';fb.textContent='✓ ALL CORRECTLY ASSIGNED — ACCESS GRANTED';}
+  else{
+    wrongAnswer();
+    const gp=document.getElementById('cat-guidance');const gt=document.getElementById('cat-guidance-text');
+    if(gp&&gt){gt.textContent=`${wrongCount} chip${wrongCount>1?'s are':' is'} in the wrong column (shown in red). ${room.catGuidance||''}`;gp.classList.add('show');}
+  }
+}
+
+/* ═══ BRAIN ═══ */
+function buildBrain(room,c){
+  const sh=[...room.pairs].sort(()=>Math.random()-.5);
+  G.brainState={pairs:sh,idx:0,done:new Set()};
+  const wrap=document.createElement('div');wrap.id='brain-wrap';
+  const sbox=document.createElement('div');sbox.id='brain-symptom-box';
+  sbox.innerHTML=`<div id="bs-label">WHICH BRAIN REGION IS RESPONSIBLE FOR THIS SYMPTOM?</div><div id="bs-symptom">${sh[0].symptom}</div><div id="bs-progress"></div>`;
+  wrap.appendChild(sbox);
+  const instr=document.createElement('div');instr.id='brain-instr';instr.textContent='Click the region on the diagram that is destroyed by PrPSc accumulation, causing this symptom.';wrap.appendChild(instr);
+  // Brain SVG
+  const svgWrap=document.createElement('div');svgWrap.id='brain-svg-wrap';
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 570 340');svg.setAttribute('xmlns',NS);svg.style.width='100%';svg.style.maxWidth='570px';svg.style.overflow='visible';
+  const outline=document.createElementNS(NS,'path');outline.setAttribute('d','M68,122 C54,86 68,46 108,26 C148,8 210,6 256,16 C294,8 348,6 382,18 C418,12 460,26 488,52 C512,76 516,114 504,148 C492,178 468,198 446,210 C470,220 494,240 502,268 C510,296 496,318 476,326 C454,334 426,328 406,312 C384,294 372,270 370,248 C362,222 372,208 390,206 L414,208 C390,220 358,230 328,234 L258,232 C222,240 184,245 156,241 C122,236 98,218 82,196 C64,174 62,150 68,122 Z');outline.setAttribute('fill','#0a0f0a');outline.setAttribute('stroke','rgba(255,183,0,0.18)');outline.setAttribute('stroke-width','1.5');svg.appendChild(outline);
+  const bstem=document.createElementNS(NS,'path');bstem.setAttribute('d','M258,232 L262,262 C264,280 276,292 294,294 C312,296 326,282 328,260 L328,234 Z');bstem.setAttribute('fill','#0e160e');bstem.setAttribute('stroke','rgba(255,183,0,0.1)');bstem.setAttribute('stroke-width','1');svg.appendChild(bstem);
+  DIVIDERS.forEach(d=>{const l=document.createElementNS(NS,'path');l.setAttribute('d',d);l.setAttribute('stroke','rgba(255,183,0,0.13)');l.setAttribute('stroke-width','1');l.setAttribute('fill','none');svg.appendChild(l);});
+  ['Frontal Lobe','Cerebral Cortex','Occipital Cortex','Cerebellum','Thalamus'].forEach(name=>{
+    const def=BRAIN_DEFS[name];let el;
+    if(def.type==='path'){el=document.createElementNS(NS,'path');el.setAttribute('d',def.d);}
+    else{el=document.createElementNS(NS,'ellipse');el.setAttribute('cx',def.cx);el.setAttribute('cy',def.cy);el.setAttribute('rx',def.rx);el.setAttribute('ry',def.ry);}
+    el.setAttribute('fill',def.fill);el.setAttribute('stroke','rgba(255,183,0,0.22)');el.setAttribute('stroke-width','1.2');
+    el.setAttribute('class','brain-region');el.dataset.region=name;el.id='br-'+name.replace(/\s/g,'-');
+    el.addEventListener('click',()=>handleBrainClick(name,room));svg.appendChild(el);
+    const lbl=document.createElementNS(NS,'text');lbl.setAttribute('x',def.lx);lbl.setAttribute('y',def.ly);lbl.setAttribute('class','brain-label');lbl.setAttribute('id','lbl-'+name.replace(/\s/g,'-'));lbl.setAttribute('text-anchor','middle');lbl.textContent=name;svg.appendChild(lbl);
+  });
+  svgWrap.appendChild(svg);wrap.appendChild(svgWrap);
+  // Brain guidance panel
+  const bg=document.createElement('div');bg.id='brain-guidance';bg.innerHTML='<span id="brain-guidance-text"></span>';
+  wrap.appendChild(bg);
+  c.appendChild(wrap);updateBrainProgress();
+}
+function updateBrainProgress(){const s=G.brainState;const p=document.getElementById('bs-progress');if(!p)return;p.innerHTML='';s.pairs.forEach((_,i)=>{const d=document.createElement('div');d.className='bsp-dot'+(s.done.has(i)?' done':i===s.idx?' cur':'');p.appendChild(d);});}
+function handleBrainClick(regionName,room){
+  if(G.puzzleSolved)return;
+  const s=G.brainState;const current=s.pairs[s.idx];
+  const el=document.getElementById('br-'+regionName.replace(/\s/g,'-'));
+  if(regionName===current.region){
+    el.classList.add('br-correct','br-done');
+    const lbl=document.getElementById('lbl-'+regionName.replace(/\s/g,'-'));if(lbl)lbl.classList.add('lbl-done');
+    // Hide guidance on correct
+    const bg=document.getElementById('brain-guidance');if(bg)bg.classList.remove('show');
+    s.done.add(s.idx);s.idx++;
+    if(s.idx>=s.pairs.length){onPuzzleSolved(room);}
+    else{document.getElementById('bs-symptom').textContent=s.pairs[s.idx].symptom;updateBrainProgress();}
+  } else {
+    el.classList.add('br-wrong');wrongAnswer();
+    // Show region-specific guidance
+    const bg=document.getElementById('brain-guidance');const bt=document.getElementById('brain-guidance-text');
+    if(bg&&bt&&room.brainFeedback&&room.brainFeedback[regionName]){bt.textContent=room.brainFeedback[regionName];bg.classList.add('show');}
+    setTimeout(()=>el.classList.remove('br-wrong'),700);
+  }
+}
+
+/* ═══ WRONG / SOLVE ═══ */
+function wrongAnswer(){G.wrongAnswers++;G.timerSec=Math.max(0,G.timerSec-120);updateTimer();addContam(10);showToast("✗ INCORRECT — −2 MIN | +10% CONTAMINATION");}
+function onPuzzleSolved(room){G.puzzleSolved=true;document.getElementById('revealed-code').textContent=room.code;document.getElementById('code-sec').className='show';setTimeout(()=>document.getElementById('ci0').focus(),150);}
+
+/* ═══ CODE ═══ */
+function codeInput(idx){const el=document.getElementById('ci'+idx);el.value=el.value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(el.value.length===1&&idx<3)document.getElementById('ci'+(idx+1)).focus();}
+function codeKey(e,idx){if(e.key==='Backspace'&&!document.getElementById('ci'+idx).value&&idx>0)document.getElementById('ci'+(idx-1)).focus();if(e.key==='Enter')submitCode();}
+function submitCode(){
+  const entered=['ci0','ci1','ci2','ci3'].map(id=>document.getElementById(id).value).join('');
+  const room=ROOMS[G.room];
+  if(entered.toUpperCase()===room.code.toUpperCase()){
+    document.getElementById('code-err').style.display='none';G.room++;
+    if(G.room>=ROOMS.length){victory();return;}
+    if(G.room===2)showFileScreen(1);else if(G.room===4)showFileScreen(2);
+    else{loadRoom(G.room);window.scrollTo(0,0);}
+  } else {
+    document.getElementById('code-err').style.display='block';
+    ['ci0','ci1','ci2','ci3'].forEach(id=>{const el=document.getElementById(id);el.classList.add('err');setTimeout(()=>el.classList.remove('err'),400);});
+  }
+}
+
+/* ═══ TOAST / SCREENS ═══ */
+let toastT=null;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3000);}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function victory(){G.running=false;clearInterval(G.timerInterval);showScreen('victory-screen');const m=Math.floor(G.timerSec/60),s=G.timerSec%60;document.getElementById('v-time').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');document.getElementById('v-contam').textContent=G.contamination+'%';document.getElementById('v-wrong').textContent=G.wrongAnswers;}
+function gameOver(reason){G.running=false;clearInterval(G.timerInterval);document.getElementById('go-reason').textContent=reason;showScreen('gameover-screen');}
+</script>
+</body>
+</html>
